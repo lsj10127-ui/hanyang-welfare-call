@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# bkit plugin runtime state
+/.bkit
+
+# local dev launch config (machine-specific paths)
+/.claude
