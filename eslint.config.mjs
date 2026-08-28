@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // pdfjs-dist에서 복사해 온 압축 파일이라 검사 대상이 아니다.
+    "public/pdf.worker.min.mjs",
   ]),
 ]);
 

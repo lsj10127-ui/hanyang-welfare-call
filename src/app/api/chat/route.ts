@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { listDocumentsWithContent } from "@/lib/supabase";
 
 const MAX_CONTEXT_CHARS = 60000;
 
-interface ChatDocument {
-  name: string;
-  text: string;
-}
+/** 문서가 하나도 없을 때의 안내 (PRD §5 예외 상황 처리 규칙) */
+const NO_DOCUMENTS_MESSAGE =
+  "현재 안내 가능한 문서가 없습니다. 총무팀에 문의해 주세요.";
 
 export async function POST(request: NextRequest) {
   const apiKey = process.env.OPENAI_API_KEY;
@@ -19,26 +19,43 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const body = await request.json();
-  const question =
-    typeof body.question === "string" ? body.question.trim() : "";
-  const documents: ChatDocument[] = Array.isArray(body.documents)
-    ? body.documents
-    : [];
-
-  if (!question) {
-    return NextResponse.json({ error: "질문을 입력해 주세요." }, { status: 400 });
-  }
-  if (documents.length === 0) {
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
     return NextResponse.json(
-      { error: "현재 안내 가능한 문서가 없습니다. 총무팀에 문의해 주세요." },
+      { error: "요청 형식이 올바르지 않습니다." },
       { status: 400 }
     );
   }
 
-  // 문서는 업로드된 순서대로 전달되며, 목록 마지막 문서가 가장 최근에 올라온 문서다.
+  const { question } = (body ?? {}) as { question?: unknown };
+  const trimmedQuestion = typeof question === "string" ? question.trim() : "";
+
+  if (!trimmedQuestion) {
+    return NextResponse.json({ error: "질문을 입력해 주세요." }, { status: 400 });
+  }
+
+  // 답변 근거는 서버에 저장된 문서에서만 가져온다.
+  // 브라우저가 보낸 문서를 믿으면 누구든 가짜 규정을 넣어 답변을 조작할 수 있다.
+  let documents;
+  try {
+    documents = await listDocumentsWithContent();
+  } catch (error) {
+    console.error("문서 조회 실패:", error);
+    return NextResponse.json(
+      { error: "일시적인 오류로 답변할 수 없습니다. 잠시 후 다시 시도해 주세요." },
+      { status: 502 }
+    );
+  }
+
+  if (documents.length === 0) {
+    return NextResponse.json({ answer: NO_DOCUMENTS_MESSAGE });
+  }
+
+  // 목록은 오래된 것 → 최신 순이므로, 뒤에 놓인 문서일수록 최신이다.
   let context = documents
-    .map((doc) => `[문서: ${doc.name}]\n${doc.text}`)
+    .map((doc) => `[문서: ${doc.name}]\n${doc.content}`)
     .join("\n\n---\n\n");
 
   let truncated = false;
@@ -48,7 +65,7 @@ export async function POST(request: NextRequest) {
   }
 
   const systemPrompt = `당신은 "한양복지콜"이라는 총무팀 복지 안내 챗봇입니다. 아래 규칙을 반드시 지키세요.
-1. 업로드된 문서에 있는 내용만 근거로 답변하고, 문서에 없는 내용은 절대 추측하지 않습니다. 문서에 없는 내용이면 "문서에 없습니다."라고만 답하고, 총무팀 연락처 등 다른 안내는 덧붙이지 않습니다.
+1. 아래 [문서 내용]에 있는 내용만 근거로 답변하고, 문서에 없는 내용은 절대 추측하지 않습니다. 문서에 없는 내용이면 "문서에 없습니다."라고만 답하고, 총무팀 연락처 등 다른 안내는 덧붙이지 않습니다.
 2. 날짜·기한·금액 등 숫자가 포함된 정보는 문서에 적힌 표현 그대로만 전달하고, 임의로 요약하거나 다른 값으로 바꿔 말하지 않습니다.
 3. 복지와 무관한 질문을 받으면 "복지 관련 질문만 답변할 수 있습니다."라고만 답하고, 다른 답변은 하지 않습니다.
 4. 문서마다 서로 다른 내용이 있으면, [문서 내용]에 가장 나중에 나열된(가장 최근에 업로드된) 문서를 기준으로 답변합니다.
@@ -56,7 +73,7 @@ export async function POST(request: NextRequest) {
 
   const userPrompt = `[문서 내용]\n${context}${
     truncated ? "\n\n(문서 내용이 길어 일부만 표시되었습니다.)" : ""
-  }\n\n[질문]\n${question}`;
+  }\n\n[질문]\n${trimmedQuestion}`;
 
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {

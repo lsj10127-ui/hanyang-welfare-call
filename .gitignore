@@ -45,3 +45,6 @@ next-env.d.ts
 
 # local dev launch config (machine-specific paths)
 /.claude
+
+# 삭제 대기 파일 (사용자 확인 후 최종 삭제)
+/trash-can
