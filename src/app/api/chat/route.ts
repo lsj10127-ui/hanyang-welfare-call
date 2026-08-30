@@ -53,16 +53,48 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ answer: NO_DOCUMENTS_MESSAGE });
   }
 
-  // 목록은 오래된 것 → 최신 순이므로, 뒤에 놓인 문서일수록 최신이다.
-  let context = documents
-    .map((doc) => `[문서: ${doc.name}]\n${doc.content}`)
-    .join("\n\n---\n\n");
+  // 목록은 오래된 것 → 최신 순으로 온다. 컨텍스트 예산(MAX_CONTEXT_CHARS)을 넘기면
+  // "가장 나중에 나열된 문서가 최신"이라는 규칙(PRD §5)이 성립하도록 최신 문서부터
+  // 채우고, 자리가 없는 오래된 문서를 제외한다. 앞에서부터 자르면 최신 문서가
+  // 통째로 사라져 폐지된 옛 규정으로 답하게 되므로 반드시 뒤에서부터 채워야 한다.
+  const SEPARATOR = "\n\n---\n\n";
+  const included: { name: string; content: string }[] = [];
+  let usedChars = 0;
+  let oldestDroppedCount = 0;
+  let newestWasTrimmed = false;
 
-  let truncated = false;
-  if (context.length > MAX_CONTEXT_CHARS) {
-    context = context.slice(0, MAX_CONTEXT_CHARS);
-    truncated = true;
+  for (let i = documents.length - 1; i >= 0; i--) {
+    const doc = documents[i];
+    const header = `[문서: ${doc.name}]\n`;
+    const chunkChars =
+      header.length + doc.content.length + (included.length > 0 ? SEPARATOR.length : 0);
+
+    if (usedChars + chunkChars <= MAX_CONTEXT_CHARS) {
+      included.unshift({ name: doc.name, content: doc.content });
+      usedChars += chunkChars;
+      continue;
+    }
+
+    // 문서 하나가 예산 전체보다 커서 온전히 넣을 자리가 없다.
+    // 그래도 최신 문서는 최대한 반영해야 하므로, 아직 아무 문서도 못 넣었다면
+    // 이 문서만이라도 앞부분을 잘라 넣는다.
+    if (included.length === 0) {
+      const room = MAX_CONTEXT_CHARS - header.length;
+      included.push({ name: doc.name, content: doc.content.slice(0, Math.max(room, 0)) });
+      newestWasTrimmed = true;
+    }
+    oldestDroppedCount = i + 1; // 이 문서와 그보다 오래된 문서 전부 제외됨
+    break;
   }
+
+  const context = included
+    .map((doc) => `[문서: ${doc.name}]\n${doc.content}`)
+    .join(SEPARATOR);
+
+  const wasLimited = oldestDroppedCount > 0 || newestWasTrimmed;
+  const limitNote = wasLimited
+    ? "\n\n(문서 내용이 많아 오래된 문서 일부가 이번 답변에 반영되지 않았습니다.)"
+    : "";
 
   const systemPrompt = `당신은 "한양복지콜"이라는 총무팀 복지 안내 챗봇입니다. 아래 규칙을 반드시 지키세요.
 1. 아래 [문서 내용]에 있는 내용만 근거로 답변하고, 문서에 없는 내용은 절대 추측하지 않습니다. 문서에 없는 내용이면 "문서에 없습니다."라고만 답하고, 총무팀 연락처 등 다른 안내는 덧붙이지 않습니다.
@@ -71,9 +103,7 @@ export async function POST(request: NextRequest) {
 4. 문서마다 서로 다른 내용이 있으면, [문서 내용]에 가장 나중에 나열된(가장 최근에 업로드된) 문서를 기준으로 답변합니다.
 5. 항상 정중한 한국어 존댓말을 사용합니다.`;
 
-  const userPrompt = `[문서 내용]\n${context}${
-    truncated ? "\n\n(문서 내용이 길어 일부만 표시되었습니다.)" : ""
-  }\n\n[질문]\n${trimmedQuestion}`;
+  const userPrompt = `[문서 내용]\n${context}${limitNote}\n\n[질문]\n${trimmedQuestion}`;
 
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {

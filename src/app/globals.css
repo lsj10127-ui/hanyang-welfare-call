@@ -1,27 +1,51 @@
 @import "tailwindcss";
 
+/*
+ * 나이키 코리아 사이트의 인상을 참고한 팔레트다.
+ * 흰 배경 + 거의 검정에 가까운 글자, 회색 계열의 얇은 경계선,
+ * 모서리를 둥글리지 않는 각진 형태가 특징이다.
+ */
 :root {
   color-scheme: light;
-  --background: #f5f8fd;
-  --foreground: #0b2447;
+  --background: #ffffff;
+  --foreground: #111111;
 
-  --brand-900: #0b2447;
-  --brand-700: #123a72;
-  --brand-600: #164a91;
-  --brand-500: #1d5cae;
-  --brand-100: #e6eefb;
-  --brand-50: #f5f8fd;
+  --ink-900: #111111; /* 제목, 강조 */
+  --ink-700: #333333; /* 본문 */
+  --ink-500: #707072; /* 보조 설명 */
+  --ink-300: #cacaca; /* 입력란 경계 */
+  --ink-100: #e5e5e5; /* 구분선 */
+  --ink-50: #f5f5f5; /* 옅은 배경 */
+
+  --accent: #111111; /* 버튼 등 주요 동작 */
+  --danger: #d33a2c; /* 오류 안내 */
+
+  /*
+   * 병원 로고(public/logo.png)에서 뽑아낸 남색이다.
+   * 이미지 픽셀을 세어 가장 많이 쓰인 값을 그대로 가져왔다.
+   * 흑백 화면에 병원 정체성을 남기기 위해 경계선과 강조에만 쓴다.
+   */
+  --navy: #00498b;
+  --navy-dark: #003368; /* 마우스를 올렸을 때 */
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-noto-sans-kr);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont,
-    "Malgun Gothic", "Apple SD Gothic Neo", "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-noto-sans-kr), "Malgun Gothic", "Apple SD Gothic Neo",
+    Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 각진 형태를 기본으로 삼는다. */
+button,
+input,
+textarea {
+  border-radius: 0;
 }

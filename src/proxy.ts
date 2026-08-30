@@ -16,8 +16,8 @@ const LOCAL_ADDRESSES = new Set(["127.0.0.1", "::1", "localhost"]);
 
 /** 비밀번호를 요구할 화면 경로 */
 const PROTECTED_PAGE = "/admin";
-/** 비밀번호를 요구할 API 경로 (읽기는 제외하고 쓰기만 잠근다) */
-const DOCUMENTS_API = "/api/documents";
+/** 비밀번호를 요구할 API 경로들 (읽기는 제외하고 쓰기만 잠근다) */
+const WRITE_PROTECTED_APIS = ["/api/documents", "/api/faq"];
 
 // ────────────────────────────── 사내망 IP 제한 ──────────────────────────────
 
@@ -111,8 +111,12 @@ function needsAdminPassword(request: NextRequest): boolean {
     return true;
   }
 
-  // 문서 저장·삭제. 목록 읽기(GET)는 문서 이름만 나가므로 잠그지 않는다.
-  if (pathname.startsWith(DOCUMENTS_API) && request.method !== "GET") {
+  // 문서·자주 묻는 질문의 저장과 삭제.
+  // 읽기(GET)는 직원 화면이 써야 하고 이름·질문만 나가므로 잠그지 않는다.
+  if (
+    request.method !== "GET" &&
+    WRITE_PROTECTED_APIS.some((prefix) => pathname.startsWith(prefix))
+  ) {
     return true;
   }
 

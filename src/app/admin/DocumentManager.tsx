@@ -98,30 +98,30 @@ export default function DocumentManager({ initialDocuments, loadError }: Props) 
   return (
     <>
       {/* 업로드 */}
-      <section className="rounded-3xl border border-[var(--brand-100)] bg-white p-6 shadow-sm sm:p-8">
+      <section className="flex flex-col gap-4">
         <label
           htmlFor="pdf-upload"
-          className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-[var(--brand-100)] bg-[var(--brand-50)] px-6 py-10 text-center transition-colors hover:border-[var(--brand-500)]"
+          className="flex cursor-pointer flex-col items-center justify-center gap-3 border-2 border-dashed border-[var(--navy)] bg-[var(--ink-50)] px-6 py-14 text-center transition-colors hover:bg-white"
         >
           <svg
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            strokeWidth={1.8}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-8 w-8 text-[var(--brand-500)]"
+            strokeWidth={1.5}
+            strokeLinecap="square"
+            strokeLinejoin="miter"
+            className="h-7 w-7 text-[var(--navy)]"
           >
             <path d="M12 16V4M12 4 7 9M12 4l5 5" />
             <path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
           </svg>
-          <span className="text-sm font-medium text-[var(--brand-700)]">
-            클릭해서 복지 문서(PDF)를 올려주세요 (여러 개 선택 가능)
+          <span className="text-base font-bold text-[var(--ink-900)]">
+            복지 문서(PDF) 올리기
           </span>
-          <span className="text-xs text-[var(--brand-500)]">
-            복지 제도별로 문서를 나누어 올리면 답변이 더 정확해집니다.
-          </span>
-          <span className="text-xs text-[var(--brand-500)]">
+          <span className="text-sm leading-relaxed text-[var(--ink-500)]">
+            여러 개를 한 번에 선택할 수 있습니다. 제도별로 나누어 올리면 답변이
+            더 정확해집니다.
+            <br />
             같은 이름의 파일을 다시 올리면 최신 내용으로 교체됩니다.
           </span>
           <input
@@ -137,58 +137,62 @@ export default function DocumentManager({ initialDocuments, loadError }: Props) 
         </label>
 
         {isUploading && (
-          <p className="mt-4 text-sm text-[var(--brand-500)]">{progress}</p>
+          <p className="text-sm text-[var(--ink-500)]">{progress}</p>
         )}
 
         {errors.length > 0 && (
-          <ul className="mt-4 flex flex-col gap-1 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-600">
+          <ul className="flex flex-col gap-1 border-l-2 border-[var(--danger)] bg-[var(--ink-50)] px-5 py-3 text-sm text-[var(--danger)]">
             {errors.map((message, idx) => (
-              <li key={idx}>· {message}</li>
+              <li key={idx}>{message}</li>
             ))}
           </ul>
         )}
       </section>
 
       {/* 저장된 문서 목록 */}
-      <section className="rounded-3xl border border-[var(--brand-100)] bg-white p-6 shadow-sm sm:p-8">
-        <h2 className="text-lg font-bold text-[var(--brand-900)]">
-          저장된 문서
-        </h2>
+      <section className="flex flex-col gap-5 border-t-2 border-[var(--navy)] pt-10">
+        <div className="flex items-baseline justify-between">
+          <h2 className="text-xl font-black tracking-tight text-[var(--ink-900)]">
+            저장된 문서
+          </h2>
+          {documents.length > 0 && (
+            <span className="text-sm font-medium text-[var(--ink-500)]">
+              {documents.length}개
+            </span>
+          )}
+        </div>
 
         {documents.length === 0 ? (
-          <p className="mt-4 text-sm text-[var(--brand-500)]">
+          <p className="text-sm text-[var(--ink-500)]">
             아직 올린 문서가 없습니다. 문서를 올리면 직원이 질문할 수 있습니다.
           </p>
         ) : (
-          <>
-            <p className="mt-3 inline-flex w-fit items-center gap-2 rounded-full bg-[var(--brand-100)] px-4 py-1.5 text-sm font-semibold text-[var(--brand-700)]">
-              ✓ 문서 준비 완료 ({documents.length}개)
-            </p>
-            <ul className="mt-4 flex flex-col divide-y divide-[var(--brand-100)]">
-              {/* 최근에 올린 문서를 위에 보여준다 (목록은 오래된 순으로 내려온다) */}
-              {[...documents].reverse().map((doc) => (
-                <li
-                  key={doc.id}
-                  className="flex items-center justify-between gap-3 py-3 text-sm text-[var(--brand-900)]"
-                >
-                  <span className="flex min-w-0 flex-col gap-0.5">
-                    <span className="truncate font-medium">{doc.name}</span>
-                    <span className="text-xs text-[var(--brand-500)]">
-                      {new Date(doc.uploaded_at).toLocaleString("ko-KR")} 등록
-                    </span>
+          <ul className="flex flex-col border-t border-[var(--ink-100)]">
+            {/* 최근에 올린 문서를 위에 보여준다 (목록은 오래된 순으로 내려온다) */}
+            {[...documents].reverse().map((doc) => (
+              <li
+                key={doc.id}
+                className="flex items-center justify-between gap-4 border-b border-[var(--ink-100)] py-4"
+              >
+                <span className="flex min-w-0 flex-col gap-1">
+                  <span className="truncate text-sm font-bold text-[var(--ink-900)]">
+                    {doc.name}
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(doc)}
-                    disabled={deletingId === doc.id}
-                    className="shrink-0 rounded-full border border-[var(--brand-100)] px-4 py-1.5 text-xs font-medium text-[var(--brand-700)] transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {deletingId === doc.id ? "삭제 중..." : "삭제"}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </>
+                  <span className="text-xs text-[var(--ink-500)]">
+                    {new Date(doc.uploaded_at).toLocaleString("ko-KR")} 등록
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(doc)}
+                  disabled={deletingId === doc.id}
+                  className="shrink-0 border border-[var(--ink-300)] px-5 py-2 text-xs font-bold text-[var(--ink-900)] transition-colors hover:border-[var(--danger)] hover:text-[var(--danger)] disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {deletingId === doc.id ? "삭제 중..." : "삭제"}
+                </button>
+              </li>
+            ))}
+          </ul>
         )}
       </section>
     </>

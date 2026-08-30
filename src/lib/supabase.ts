@@ -30,6 +30,31 @@ export interface WelfareDocument {
 }
 
 export const DOCUMENTS_TABLE = "welfare_documents";
+export const FAQ_TABLE = "faq_questions";
+
+/** 자주 묻는 질문 한 건 */
+export interface FaqQuestion {
+  id: string;
+  question: string;
+  created_at: string;
+}
+
+/**
+ * 총무팀이 등록한 자주 묻는 질문을 등록 순으로 읽는다.
+ *
+ * 직원들이 실제로 무엇을 자주 묻는지는 지금도 전화·메신저로 문의를 받는
+ * 총무팀이 가장 잘 안다. 질문 기록을 남겨 빈도를 세는 방식은 쓰지 않는다.
+ */
+export async function listFaqQuestions(): Promise<FaqQuestion[]> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from(FAQ_TABLE)
+    .select("id, question, created_at")
+    .order("created_at", { ascending: true });
+
+  if (error) throw error;
+  return data ?? [];
+}
 
 /** 목록에 쓰는 문서 정보 (본문 제외) */
 export type DocumentSummary = Pick<
