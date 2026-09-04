@@ -1,8 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { listDocuments, listFaqQuestions, type FaqQuestion } from "@/lib/supabase";
+import { getSeoulWeather } from "@/lib/weather";
 import ChatPanel from "./ChatPanel";
 import Clock from "./Clock";
+import WeatherIcon, { weatherLabel } from "./WeatherIcon";
 
 // 총무팀이 문서를 올리면 바로 반영되어야 하므로 접속할 때마다 새로 읽는다.
 export const dynamic = "force-dynamic";
@@ -21,6 +23,8 @@ export default async function Home() {
     // 못 읽어도 화면은 떠야 한다. 이 경우 "문서 없음"과 같은 안내가 나간다.
     console.error("문서 또는 자주 묻는 질문 조회 실패:", error);
   }
+  // 날씨는 순전히 장식이라, 못 가져와도(null) 화면은 그대로 뜬다.
+  const weather = await getSeoulWeather();
 
   return (
     <div className="flex flex-1 flex-col items-center px-3 py-6 sm:px-10 sm:py-24">
@@ -67,7 +71,17 @@ export default async function Home() {
               <br />
               총무팀이 등록한 문서를 근거로 답변해 드립니다.
             </p>
-            <Clock />
+            <div className="flex flex-wrap items-center gap-2">
+              <Clock />
+              {weather && (
+                <div className="inline-flex items-center gap-2 rounded-full bg-[var(--ink-50)] px-4 py-1.5 text-xs font-medium text-[var(--ink-500)]">
+                  <WeatherIcon code={weather.code} className="h-3.5 w-3.5 shrink-0" />
+                  <span>
+                    서울 {Math.round(weather.tempC)}°C · {weatherLabel(weather.code)}
+                  </span>
+                </div>
+              )}
+            </div>
             {documentCount > 0 && (
               <p className="text-sm font-medium text-[var(--ink-500)]">
                 안내 가능한 문서 {documentCount}개
