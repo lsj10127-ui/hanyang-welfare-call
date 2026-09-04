@@ -10,6 +10,9 @@ const notoSansKr = Noto_Sans_KR({
 });
 
 export const metadata: Metadata = {
+  // 링크 공유 시 카드 이미지(opengraph-image.tsx) 등 상대경로를 절대주소로
+  // 바꾸는 데 필요하다. 배포 주소가 바뀌면 이 값도 함께 바꾼다.
+  metadataBase: new URL("https://my-app-iota-gules-24.vercel.app"),
   title: "(총)무엇이든 물어봐",
   description: "직원 복지 제도를 물어보면 문서 내용을 근거로 답해주는 챗봇",
 };

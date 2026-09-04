@@ -99,8 +99,8 @@ export default function ChatPanel({ documentCount, faqQuestions }: Props) {
                     onClick={() => setActiveCategory(category)}
                     className={
                       category === activeCategory
-                        ? "flex items-center gap-1.5 rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white"
-                        : "flex items-center gap-1.5 rounded-full bg-[var(--ink-50)] px-4 py-2 text-sm text-[var(--ink-700)] transition-colors hover:bg-[var(--ink-100)]"
+                        ? "press flex items-center gap-1.5 rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white"
+                        : "press flex items-center gap-1.5 rounded-full bg-[var(--ink-50)] px-4 py-2 text-sm text-[var(--ink-700)] hover:bg-[var(--ink-100)]"
                     }
                   >
                     <CategoryIcon category={category} className="h-4 w-4 shrink-0" />
@@ -117,7 +117,7 @@ export default function ChatPanel({ documentCount, faqQuestions }: Props) {
                   type="button"
                   onClick={() => handleSend(faq.question)}
                   disabled={isSending}
-                  className="rounded-full border border-[var(--ink-300)] px-4 py-2 text-sm text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white hover:border-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-40"
+                  className="press rounded-full border border-[var(--ink-300)] px-4 py-2 text-sm text-[var(--accent)] hover:border-[var(--accent)] hover:bg-[var(--accent)] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {faq.question}
                 </button>
@@ -130,8 +130,8 @@ export default function ChatPanel({ documentCount, faqQuestions }: Props) {
       <div className="flex max-h-[440px] min-h-[220px] flex-col gap-5 overflow-y-auto border-t border-[var(--ink-100)] py-8">
         {messages.length === 0 && (
           <div className="flex flex-col items-center gap-4 py-6 text-center">
-            {/* 질문을 기다리고 있다는 표시 */}
-            <svg viewBox="0 0 48 48" className="h-10 w-10" aria-hidden="true">
+            {/* 질문을 기다리고 있다는 표시. 천천히 숨쉬듯 움직여 대기 상태임을 알려준다. */}
+            <svg viewBox="0 0 48 48" className="pulse-soft h-10 w-10" aria-hidden="true">
               <path
                 d="M6 6h36a4 4 0 0 1 4 4v22a4 4 0 0 1-4 4H22L10 46V36H6a4 4 0 0 1-4-4V10a4 4 0 0 1 4-4z"
                 fill="none"
@@ -159,18 +159,32 @@ export default function ChatPanel({ documentCount, faqQuestions }: Props) {
             key={idx}
             className={
               msg.role === "user"
-                ? "ml-auto max-w-[85%] whitespace-pre-wrap rounded-2xl bg-[var(--accent)] px-5 py-3 text-sm leading-relaxed text-white"
+                ? "msg-enter ml-auto max-w-[85%] whitespace-pre-wrap rounded-2xl bg-[var(--accent)] px-5 py-3 text-sm leading-relaxed text-white"
                 : msg.role === "error"
-                ? "mr-auto max-w-[85%] whitespace-pre-wrap rounded-2xl border-l-2 border-[var(--danger)] bg-[var(--ink-50)] px-5 py-3 text-sm leading-relaxed text-[var(--danger)]"
-                : "mr-auto max-w-[85%] whitespace-pre-wrap rounded-2xl bg-[var(--ink-50)] px-5 py-3 text-sm leading-relaxed text-[var(--ink-900)]"
+                ? "msg-enter mr-auto max-w-[85%] whitespace-pre-wrap rounded-2xl border-l-2 border-[var(--danger)] bg-[var(--ink-50)] px-5 py-3 text-sm leading-relaxed text-[var(--danger)]"
+                : "msg-enter mr-auto max-w-[85%] whitespace-pre-wrap rounded-2xl bg-[var(--ink-50)] px-5 py-3 text-sm leading-relaxed text-[var(--ink-900)]"
             }
           >
             {msg.content}
           </div>
         ))}
         {isSending && (
-          <div className="mr-auto max-w-[85%] rounded-2xl bg-[var(--ink-50)] px-5 py-3 text-sm text-[var(--ink-500)]">
-            답변을 찾고 있어요...
+          <div className="msg-enter mr-auto flex max-w-[85%] items-center gap-2 rounded-2xl bg-[var(--ink-50)] px-5 py-3 text-sm text-[var(--ink-500)]">
+            <span>답변을 찾고 있어요</span>
+            <span className="flex items-center gap-1" aria-hidden="true">
+              <span
+                className="typing-dot h-1.5 w-1.5 rounded-full bg-[var(--ink-500)]"
+                style={{ animationDelay: "0s" }}
+              />
+              <span
+                className="typing-dot h-1.5 w-1.5 rounded-full bg-[var(--ink-500)]"
+                style={{ animationDelay: "0.15s" }}
+              />
+              <span
+                className="typing-dot h-1.5 w-1.5 rounded-full bg-[var(--ink-500)]"
+                style={{ animationDelay: "0.3s" }}
+              />
+            </span>
           </div>
         )}
       </div>
@@ -193,7 +207,7 @@ export default function ChatPanel({ documentCount, faqQuestions }: Props) {
           type="button"
           onClick={() => handleSend()}
           disabled={!hasDocuments || !question.trim() || isSending}
-          className="rounded-full bg-[var(--accent)] px-10 py-3 text-sm font-semibold tracking-tight text-white transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:bg-[var(--ink-300)]"
+          className="press rounded-full bg-[var(--accent)] px-10 py-3 text-sm font-semibold tracking-tight text-white hover:opacity-90 disabled:cursor-not-allowed disabled:bg-[var(--ink-300)] disabled:hover:scale-100"
         >
           보내기
         </button>

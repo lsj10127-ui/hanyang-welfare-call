@@ -137,7 +137,7 @@ export default function FaqManager({ initialQuestions }: Props) {
           type="button"
           onClick={handleAdd}
           disabled={!draft.trim() || isSaving}
-          className="rounded-full bg-[var(--accent)] px-8 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:bg-[var(--ink-300)]"
+          className="press rounded-full bg-[var(--accent)] px-8 py-3 text-sm font-semibold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:bg-[var(--ink-300)] disabled:hover:scale-100"
         >
           추가
         </button>
@@ -150,9 +150,28 @@ export default function FaqManager({ initialQuestions }: Props) {
       )}
 
       {questions.length === 0 ? (
-        <p className="text-sm text-[var(--ink-500)]">
-          아직 등록한 질문이 없습니다. 등록하면 직원 화면 첫 부분에 표시됩니다.
-        </p>
+        <div className="flex flex-col items-center gap-3 py-6 text-center">
+          <svg viewBox="0 0 48 48" className="h-9 w-9 text-[var(--ink-300)]" aria-hidden="true">
+            <path
+              d="M14 8h20a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4H20l-6 6v-6h-2a4 4 0 0 1-4-4V12a4 4 0 0 1 4-4z"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M20.5 16.6a3.5 3.5 0 1 1 4.6 3.3c-1 .5-1.6 1-1.6 2.1"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+            <circle cx="23.4" cy="26.3" r="1.2" fill="currentColor" />
+          </svg>
+          <p className="text-sm text-[var(--ink-500)]">
+            아직 등록한 질문이 없습니다. 등록하면 직원 화면 첫 부분에 표시됩니다.
+          </p>
+        </div>
       ) : (
         <div className="flex flex-col gap-6">
           {Object.entries(groupedByCategory).map(([category, items]) => (
@@ -173,7 +192,7 @@ export default function FaqManager({ initialQuestions }: Props) {
                       type="button"
                       onClick={() => handleDelete(item)}
                       disabled={deletingId === item.id}
-                      className="shrink-0 rounded-full border border-[var(--ink-300)] px-5 py-2 text-xs font-semibold text-[var(--ink-900)] transition-colors hover:border-[var(--danger)] hover:text-[var(--danger)] disabled:cursor-not-allowed disabled:opacity-40"
+                      className="press shrink-0 rounded-full border border-[var(--ink-300)] px-5 py-2 text-xs font-semibold text-[var(--ink-900)] hover:border-[var(--danger)] hover:text-[var(--danger)] disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       {deletingId === item.id ? "삭제 중..." : "삭제"}
                     </button>

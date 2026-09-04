@@ -110,7 +110,7 @@ export default function DocumentManager({ initialDocuments, loadError }: Props) 
       <section className="flex flex-col gap-4">
         <label
           htmlFor="pdf-upload"
-          className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-[var(--ink-300)] bg-[var(--ink-50)] px-6 py-14 text-center transition-colors hover:border-[var(--accent)] hover:bg-[var(--background)]"
+          className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-[var(--ink-300)] bg-[var(--ink-50)] px-6 py-14 text-center transition-[transform,border-color,background-color] duration-150 hover:scale-[1.005] hover:border-[var(--accent)] hover:bg-[var(--background)]"
         >
           <svg
             viewBox="0 0 24 24"
@@ -150,7 +150,7 @@ export default function DocumentManager({ initialDocuments, loadError }: Props) 
         </label>
 
         {isUploading && (
-          <p className="text-sm text-[var(--ink-500)]">{progress}</p>
+          <p className="pulse-soft text-sm text-[var(--ink-500)]">{progress}</p>
         )}
 
         {!isUploading && uploadSuccessMessage && (
@@ -182,9 +182,29 @@ export default function DocumentManager({ initialDocuments, loadError }: Props) 
         </div>
 
         {documents.length === 0 ? (
-          <p className="text-sm text-[var(--ink-500)]">
-            아직 올린 문서가 없습니다. 문서를 올리면 직원이 질문할 수 있습니다.
-          </p>
+          <div className="flex flex-col items-center gap-3 py-6 text-center">
+            <svg viewBox="0 0 48 48" className="h-9 w-9 text-[var(--ink-300)]" aria-hidden="true">
+              <path
+                d="M8 24 14 10h20l6 14"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M8 24v10a4 4 0 0 0 4 4h24a4 4 0 0 0 4-4V24h-9a5 5 0 0 1-10 0H8z"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <p className="text-sm text-[var(--ink-500)]">
+              아직 올린 문서가 없습니다. 문서를 올리면 직원이 질문할 수 있습니다.
+            </p>
+          </div>
         ) : (
           <ul className="flex flex-col border-t border-[var(--ink-100)]">
             {/* 최근에 올린 문서를 위에 보여준다 (목록은 오래된 순으로 내려온다) */}
@@ -205,7 +225,7 @@ export default function DocumentManager({ initialDocuments, loadError }: Props) 
                   type="button"
                   onClick={() => handleDelete(doc)}
                   disabled={deletingId === doc.id}
-                  className="shrink-0 rounded-full border border-[var(--ink-300)] px-5 py-2 text-xs font-semibold text-[var(--ink-900)] transition-colors hover:border-[var(--danger)] hover:text-[var(--danger)] disabled:cursor-not-allowed disabled:opacity-40"
+                  className="press shrink-0 rounded-full border border-[var(--ink-300)] px-5 py-2 text-xs font-semibold text-[var(--ink-900)] hover:border-[var(--danger)] hover:text-[var(--danger)] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {deletingId === doc.id ? "삭제 중..." : "삭제"}
                 </button>
