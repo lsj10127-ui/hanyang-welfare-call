@@ -91,13 +91,32 @@ export default async function Home() {
 
         {/* 무엇이든 물어보라는 안내 캐릭터. 좁은 화면에서는 자리를 차지하지 않도록 감춘다. */}
         <aside className="sticky top-16 hidden w-72 shrink-0 flex-col items-center gap-4 lg:flex">
-          <Image
-            src="/leo.png"
-            alt="(총)무엇이든 물어봐 마스코트 레오"
-            width={1588}
-            height={1589}
-            className="h-auto w-56"
-          />
+          {/* 평소엔 손에 든 물음표 팻말이, 마우스를 올리면 입에 문 모습으로 자리를 옮긴다. */}
+          <div className="leo-wrap relative w-56">
+            <Image
+              src="/leo.png"
+              alt="(총)무엇이든 물어봐 마스코트 레오"
+              width={1588}
+              height={1589}
+              className="h-auto w-56"
+            />
+            <div className="leo-sign absolute h-10 w-10" aria-hidden="true">
+              <svg viewBox="0 0 60 60" className="h-full w-full drop-shadow">
+                <circle cx="30" cy="30" r="27" fill="#0071e3" stroke="#ffffff" strokeWidth="3" />
+                <text
+                  x="30"
+                  y="41"
+                  fontSize="32"
+                  fontWeight="700"
+                  fill="#ffffff"
+                  textAnchor="middle"
+                  fontFamily="sans-serif"
+                >
+                  ?
+                </text>
+              </svg>
+            </div>
+          </div>
           <div className="rounded-2xl bg-[var(--ink-50)] px-5 py-4 text-center shadow-sm">
             <p className="text-sm font-semibold text-[var(--ink-900)]">
               레오에게 무엇이든 물어보세요
