@@ -37,6 +37,31 @@ function FlipColon() {
   );
 }
 
+function StarIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="#ffb400" aria-hidden="true">
+      <path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.5l-5.9 3.1 1.3-6.6-4.9-4.6 6.6-.8L12 2.5z" />
+    </svg>
+  );
+}
+
+/** 블루리본 맛집 표시처럼, 그냥 장식으로 별 5개를 보여준다. */
+function RatingBadge() {
+  return (
+    <div className="flex items-center gap-2.5 rounded-2xl bg-[var(--ink-50)] px-4 py-2.5">
+      <div className="flex items-center gap-0.5">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <StarIcon key={i} className="h-4 w-4" />
+        ))}
+      </div>
+      <div className="leading-tight">
+        <p className="text-sm font-bold text-[var(--ink-900)]">5.0</p>
+        <p className="text-[11px] text-[var(--ink-500)]">이용 만족도</p>
+      </div>
+    </div>
+  );
+}
+
 /**
  * 플립시계 스타일의 날짜·시각과, 그 옆에 서울 날씨를 함께 보여준다.
  *
@@ -100,6 +125,8 @@ export default function Clock({ weather }: Props) {
           </div>
         </div>
       )}
+
+      <RatingBadge />
     </div>
   );
 }
