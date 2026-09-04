@@ -127,6 +127,31 @@ export default function ChatPanel({ documentCount, faqQuestions }: Props) {
         </div>
       )}
 
+      {/* 대화를 시작하면 카테고리 화면이 사라지므로, 되돌아갈 방법을 남겨 둔다. */}
+      {messages.length > 0 && (
+        <div className="pt-6">
+          <button
+            type="button"
+            onClick={() => setMessages([])}
+            className="press inline-flex items-center gap-1.5 rounded-full bg-[var(--ink-50)] px-4 py-2 text-sm font-medium text-[var(--ink-700)] hover:bg-[var(--ink-100)]"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+            처음으로
+          </button>
+        </div>
+      )}
+
       <div className="flex max-h-[440px] min-h-[220px] flex-col gap-5 overflow-y-auto border-t border-[var(--ink-100)] py-8">
         {messages.length === 0 && (
           <div className="flex flex-col items-center gap-4 py-6 text-center">
