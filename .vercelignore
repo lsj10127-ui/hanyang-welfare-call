@@ -1,0 +1,9 @@
+# vercel deploy는 .gitignore를 그대로 따르지 않아서 별도로 명시한다.
+# 비밀 정보 파일과 불필요한 폴더가 배포 소스에 절대 포함되지 않게 한다.
+.env
+.env.*
+node_modules
+.git
+.next
+trash-can
+supabase/.temp
