@@ -4,7 +4,6 @@ import { listDocuments, listFaqQuestions, type FaqQuestion } from "@/lib/supabas
 import { getSeoulWeather } from "@/lib/weather";
 import ChatPanel from "./ChatPanel";
 import Clock from "./Clock";
-import WeatherIcon, { weatherLabel } from "./WeatherIcon";
 
 // 총무팀이 문서를 올리면 바로 반영되어야 하므로 접속할 때마다 새로 읽는다.
 export const dynamic = "force-dynamic";
@@ -71,17 +70,7 @@ export default async function Home() {
               <br />
               총무팀이 등록한 문서를 근거로 답변해 드립니다.
             </p>
-            <div className="flex flex-wrap items-center gap-2">
-              <Clock />
-              {weather && (
-                <div className="inline-flex items-center gap-2 rounded-full bg-[var(--ink-50)] px-4 py-1.5 text-xs font-medium text-[var(--ink-500)]">
-                  <WeatherIcon code={weather.code} className="h-3.5 w-3.5 shrink-0" />
-                  <span>
-                    서울 {Math.round(weather.tempC)}°C · {weatherLabel(weather.code)}
-                  </span>
-                </div>
-              )}
-            </div>
+            <Clock weather={weather} />
             {documentCount > 0 && (
               <p className="text-sm font-medium text-[var(--ink-500)]">
                 안내 가능한 문서 {documentCount}개

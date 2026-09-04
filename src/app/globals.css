@@ -20,6 +20,7 @@
 
   --accent: #2997ff; /* 버튼·링크 등 주요 동작 */
   --accent-dark: #5cb2ff; /* 마우스를 올렸을 때(어두운 배경 위라 더 밝게) */
+  --accent-soft: rgba(41, 151, 255, 0.16); /* 아이콘 원형 배경처럼 옅게 깔 때 */
   --danger: #ff453a; /* 오류 안내 */
 }
 
@@ -63,6 +64,7 @@ textarea {
 
   --accent: #0071e3;
   --accent-dark: #0058b0;
+  --accent-soft: #e8f1fd;
 
   position: relative;
   overflow: hidden;
@@ -198,6 +200,28 @@ textarea {
 }
 .pulse-soft {
   animation: softPulse 2.4s ease-in-out infinite;
+}
+
+/* 플립시계 숫자가 바뀔 때 위에서 아래로 넘어가듯 짧게 플립된다. */
+@keyframes flipIn {
+  from {
+    transform: rotateX(75deg);
+    opacity: 0.4;
+  }
+  to {
+    transform: rotateX(0deg);
+    opacity: 1;
+  }
+}
+.flip-digit {
+  display: inline-block;
+  transform-style: preserve-3d;
+  animation: flipIn 0.32s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .flip-digit {
+    animation: none;
+  }
 }
 
 /* "답변을 찾고 있어요" 옆 세 개짜리 타이핑 점. */
