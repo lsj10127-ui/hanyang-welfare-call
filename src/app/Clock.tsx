@@ -56,7 +56,7 @@ function RatingBadge() {
       </div>
       <div className="leading-tight">
         <p className="text-sm font-bold text-[var(--ink-900)]">5.0</p>
-        <p className="text-[11px] text-[var(--ink-500)]">이용 만족도</p>
+        <p className="text-[11px] text-[var(--ink-500)]">강의 만족도</p>
       </div>
     </div>
   );
