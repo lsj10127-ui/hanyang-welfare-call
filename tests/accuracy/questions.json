@@ -61,7 +61,7 @@
     {
       "id": "gyeongjosabi-출산",
       "enabled": true,
-      "question": "자녀가 출산하면 경조사비를 얼마 받나요?",
+      "question": "자녀를 출산하면 경조사비를 얼마 받나요?",
       "mustInclude": ["50만원"],
       "note": "실제 등록 문서(경조사비.pdf) 기준."
     },
