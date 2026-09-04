@@ -175,11 +175,17 @@ export default function ChatPanel({ documentCount, faqQuestions }: Props) {
               />
               <circle cx="24" cy="28.5" r="1.9" fill="var(--accent)" />
             </svg>
-            <p className="text-base text-[var(--ink-500)]">
-              {hasDocuments
-                ? "예) 경조사 지원금은 얼마인가요?"
-                : "현재 안내 가능한 문서가 없습니다. 총무팀에 문의해 주세요."}
-            </p>
+            {hasDocuments ? (
+              <div className="flex flex-col gap-1.5 text-base text-[var(--ink-500)]">
+                <p>예) 경조사 지원금은 얼마인가요?</p>
+                <p>예) 직원 주차는 어떻게 신청하나요?</p>
+                <p>예) 편의시설 할인 혜택이 있나요?</p>
+              </div>
+            ) : (
+              <p className="text-base text-[var(--ink-500)]">
+                현재 안내 가능한 문서가 없습니다. 총무팀에 문의해 주세요.
+              </p>
+            )}
           </div>
         )}
         {messages.map((msg, idx) => (
