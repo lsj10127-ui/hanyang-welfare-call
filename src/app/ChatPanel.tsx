@@ -93,14 +93,17 @@ export default function ChatPanel({ documentCount, faqQuestions }: Props) {
           {categories.length > 1 && (
             <ul className="flex flex-wrap gap-2">
               {categories.map((category) => (
-                <li key={category}>
+                <li key={category} className="relative">
+                  {category === activeCategory && (
+                    <span className="rainbow-ring" aria-hidden="true" />
+                  )}
                   <button
                     type="button"
                     onClick={() => setActiveCategory(category)}
                     className={
                       category === activeCategory
-                        ? "press flex items-center gap-1.5 rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white"
-                        : "press flex items-center gap-1.5 rounded-full bg-[var(--ink-50)] px-4 py-2 text-sm text-[var(--ink-700)] hover:bg-[var(--ink-100)]"
+                        ? "press relative z-10 flex items-center gap-1.5 rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white"
+                        : "press relative z-10 flex items-center gap-1.5 rounded-full bg-[var(--ink-50)] px-4 py-2 text-sm text-[var(--ink-700)] hover:bg-[var(--ink-100)]"
                     }
                   >
                     <CategoryIcon category={category} className="h-4 w-4 shrink-0" />
