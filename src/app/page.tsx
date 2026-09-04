@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { listDocuments, listFaqQuestions, type FaqQuestion } from "@/lib/supabase";
 import ChatPanel from "./ChatPanel";
+import Clock from "./Clock";
 
 // 총무팀이 문서를 올리면 바로 반영되어야 하므로 접속할 때마다 새로 읽는다.
 export const dynamic = "force-dynamic";
@@ -66,6 +67,7 @@ export default async function Home() {
               <br />
               총무팀이 등록한 문서를 근거로 답변해 드립니다.
             </p>
+            <Clock />
             {documentCount > 0 && (
               <p className="text-sm font-medium text-[var(--ink-500)]">
                 안내 가능한 문서 {documentCount}개
