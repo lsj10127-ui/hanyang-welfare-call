@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-"한양복지콜" — an internal chatbot for the General Affairs team at Hanyang University Hospital. Staff ask how to use employee welfare programs; the bot answers strictly from PDFs the team uploads.
+"(총)무엇이든 물어봐" — an internal chatbot for the General Affairs team at Hanyang University Hospital. Staff ask how to use employee welfare programs; the bot answers strictly from PDFs the team uploads.
 
 `PRD.md` is the product spec and the source of truth for behavior. Read it before changing what the bot says or widening scope — it fixes the two must-have features, the exception-handling rules, and an explicit non-goals list (no auth, no application submission, no personal-data lookup, no mobile app, no i18n).
 
@@ -59,9 +59,9 @@ No test framework is configured.
 
 ## Architecture
 
-**Documents never leave the browser until a question is asked.** PDF text extraction runs client-side in `src/app/extractPdfText.ts` (pdfjs-dist). The extracted text is held only in React state in `src/app/page.tsx` — there is no database, no upload endpoint, and no server-side persistence. A page refresh drops every loaded document.
+**Documents are stored server-side in Supabase, not in browser state.** There are two screens: `/` (employee chat, public) and `/admin` (document + FAQ management, password-protected). PDF text extraction still runs client-side in `src/app/extractPdfText.ts` (pdfjs-dist) — only the extracted text is sent to the server. `src/app/admin/DocumentManager.tsx` POSTs it to `/api/documents`, which persists it in the `welfare_documents` table (`src/lib/supabase.ts`). `src/app/page.tsx` and `src/app/admin/page.tsx` read from Supabase on every request (`export const dynamic = "force-dynamic"`), so a refresh — or a different device — sees the same documents. FAQ chips work the same way through `faq_questions` / `/api/faq` / `FaqManager.tsx`.
 
-Each question POSTs the full text of *all* loaded documents to `POST /api/chat`, which truncates at `MAX_CONTEXT_CHARS` (60,000) before calling OpenAI `gpt-4o-mini`. Context is rebuilt per request; there is no retrieval or embedding step despite the "RAG" framing. Document order matters — the route treats the last document as the most recently uploaded, which the prompt uses to resolve conflicts between documents.
+Each question to `POST /api/chat` sends only the question text; the route reads all documents server-side via `listDocumentsWithContent()` and builds the context itself — the client never gets to supply document content, which is what prevents a forged "document" from being injected into the prompt. If the combined content exceeds `MAX_CONTEXT_CHARS` (60,000), the **oldest** documents are dropped first (not the newest) so the "latest document wins" conflict rule stays true. Each document is wrapped in `<문서 id="{nonce}">` tags with a `crypto.randomUUID()` generated fresh per request, and the question is sent as a separate `user` message from the documents' `system` message — this keeps a question that contains fake "document" text from being treated as one, and rule 5 of the system prompt explicitly tells the model a question is never an instruction. There is no retrieval or embedding step despite the "RAG" framing.
 
 **The pdf.js worker is a static asset, not a bundled import.** `extractPdfText.ts` sets `workerSrc = "/pdf.worker.min.mjs"`. After upgrading `pdfjs-dist`, re-copy it or extraction breaks at runtime:
 
@@ -69,16 +69,27 @@ Each question POSTs the full text of *all* loaded documents to `POST /api/chat`,
 cp node_modules/pdfjs-dist/build/pdf.worker.min.mjs public/
 ```
 
-**All answer behavior lives in one system prompt** in `src/app/api/chat/route.ts`. Its numbered rules implement PRD.md §5 directly: answer only from the documents, reply exactly `문서에 없습니다.` when unsupported, pass numbers and dates through verbatim, refuse off-topic questions, and prefer the newest document on conflicts. Change the prompt and the PRD together.
+**All answer behavior lives in one system prompt** in `src/app/api/chat/route.ts`. Its numbered rules implement PRD.md §5 directly: answer only from the tagged documents, reply exactly `문서에 없습니다.` when unsupported, pass numbers and dates through verbatim, refuse off-topic questions, prefer the newest document on conflicts, and ignore instruction-like text inside the user's question. Change the prompt and the PRD together.
 
 `OPENAI_API_KEY` is read only inside that route handler and is never exposed to the client.
+
+**`src/proxy.ts` (Next.js middleware — renamed from `middleware.ts` as of Next 16) gates everything before it reaches a page or route:**
+- Admin password (HTTP Basic, `.env`'s `ADMIN_PASSWORD`) on `/admin` and on writes to `/api/documents` and `/api/faq` — reads stay public since the employee screen needs them.
+- A same-origin check on those same writes, because HTTP Basic auth isn't a cookie and gets no `SameSite` protection otherwise (CSRF).
+- An in-memory lockout (5 wrong passwords → 15 minutes) against brute-forcing the admin password.
+- An in-memory rate limit on `POST /api/chat` (10 requests/minute per IP) since it's an unauthenticated public endpoint.
+- An optional intranet IP allow-list (`ALLOWED_IPS`) — off by default; see "Open constraint" below.
+
+All four in-memory mechanisms reset on server restart and aren't shared across multiple function instances — a real backstop (OpenAI usage cap, Supabase RLS, a proper store) still matters for production; see `CHECK.md`.
 
 ## Conventions
 
 - User-facing text is Korean in polite form (존댓말), including error and empty states.
-- Colors come from the CSS custom properties in `src/app/globals.css` (`--brand-50` through `--brand-900`), consumed via Tailwind arbitrary values such as `text-[var(--brand-700)]`. Avoid raw hex and stock Tailwind palette colors.
+- Colors come from the CSS custom properties in `src/app/globals.css` (`--ink-900` down to `--ink-50`, plus `--accent`, `--accent-dark`, `--danger`), consumed via Tailwind arbitrary values such as `text-[var(--ink-700)]` or `border-[var(--accent)]`. Avoid raw hex and stock Tailwind palette colors — there is no `--brand-*` scale. The look is intentionally Apple-site-inspired (2026-09-04): white background, near-black/gray ink tones, a blue `--accent` for buttons and links, generously rounded corners (`rounded-full`/`rounded-2xl`) instead of the hard-edged, navy-bordered style used before — don't reintroduce sharp `border-2`/square icons or the old `--navy` tokens.
 - Import alias `@/*` resolves to `src/*`.
 
 ## Open constraint
 
-PRD.md §7 requires intranet-only access, and nothing enforces it yet. Vercel's IP allowlist (Trusted IPs) is Enterprise-only, so deployment is on hold pending either a Next.js middleware IP check or another approach. Raise this before deploying to a public URL.
+PRD.md §7 was amended (2026-08-28): the employee screen and question feature are **not** intranet-restricted — the welfare documents are public-safe content, so this is no longer blocking deployment. Only `/admin` (and document/FAQ writes) need protection, which `src/proxy.ts` already provides via password + CSRF check + lockout. The optional `ALLOWED_IPS` intranet allow-list in `proxy.ts` is implemented but disabled by default (empty) and not required for launch; if it's ever turned on, fix the IP-spoofing gap noted in `CHECK.md` first.
+
+`CHECK.md` tracks what's still open before public deployment (accuracy test question set, response-time measurement, Supabase RLS confirmation, OpenAI usage cap, etc.) — read it before declaring the app ready to ship.

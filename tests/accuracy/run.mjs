@@ -7,7 +7,14 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const BASE_URL = process.env.ACCURACY_BASE_URL ?? "http://localhost:3001";
+// npm run dev는 3000번 포트로 뜬다. 다른 포트를 쓰면 ACCURACY_BASE_URL로 지정한다.
+const BASE_URL = process.env.ACCURACY_BASE_URL ?? "http://localhost:3000";
+// PRD §3 — 질문부터 답변까지 1분 이내여야 한다.
+const RESPONSE_TIME_LIMIT_MS = 60_000;
+// /api/documents는 관리 화면 전용으로 잠겨 있어(CHECK.md) 문서 수 확인에도 인증이 필요하다.
+const ADMIN_AUTH_HEADER = process.env.ADMIN_PASSWORD
+  ? { Authorization: `Basic ${Buffer.from(`:${process.env.ADMIN_PASSWORD}`).toString("base64")}` }
+  : {};
 
 const spec = JSON.parse(
   fs.readFileSync(path.join(here, "questions.json"), "utf8")
@@ -41,7 +48,7 @@ console.log(`측정 질문: ${cases.length}건${skipped > 0 ? ` (꺼진 항목 $
 // 이 상태로 채점하면 정답률 0%가 나오는데, 이는 답변이 틀린 것이 아니라
 // 측정 자체가 불가능한 상황이다. 숫자를 내놓아 오해를 만드는 대신 여기서 멈춘다.
 try {
-  const res = await fetch(`${BASE_URL}/api/documents`);
+  const res = await fetch(`${BASE_URL}/api/documents`, { headers: ADMIN_AUTH_HEADER });
   const { documents } = await res.json();
   if (documents.length === 0) {
     console.error("측정할 수 없습니다: 서버에 준비된 복지 문서가 없습니다.");
@@ -57,6 +64,7 @@ try {
 for (const testCase of cases) {
   let answer = "";
   let requestFailed = false;
+  const startedAt = Date.now();
 
   try {
     const res = await fetch(`${BASE_URL}/api/chat`, {
@@ -72,14 +80,16 @@ for (const testCase of cases) {
     requestFailed = true;
   }
 
+  const elapsedMs = Date.now() - startedAt;
   const { passed, missing, forbidden } = requestFailed
     ? { passed: false, missing: ["(요청 실패)"], forbidden: [] }
     : grade(answer, testCase);
 
-  results.push({ ...testCase, answer, passed });
+  results.push({ ...testCase, answer, passed, elapsedMs });
 
   console.log(`${passed ? "✅" : "❌"} [${testCase.id}] ${testCase.question}`);
   console.log(`   답변: ${answer.replace(/\n/g, " ").slice(0, 120)}`);
+  console.log(`   응답 시간: ${(elapsedMs / 1000).toFixed(1)}초`);
   if (!passed) {
     if (missing.length) console.log(`   빠진 표현: ${missing.join(", ")}`);
     if (forbidden.length) console.log(`   들어가면 안 되는 표현: ${forbidden.join(", ")}`);
@@ -90,8 +100,15 @@ for (const testCase of cases) {
 const passedCount = results.filter((r) => r.passed).length;
 const rate = Math.round((passedCount / results.length) * 1000) / 10;
 
+const slowest = results.reduce((max, r) => Math.max(max, r.elapsedMs), 0);
+const avgMs = results.reduce((sum, r) => sum + r.elapsedMs, 0) / results.length;
+const withinTimeLimit = slowest <= RESPONSE_TIME_LIMIT_MS;
+
 console.log("─".repeat(50));
 console.log(`정답률: ${rate}% (${passedCount}/${results.length})  |  목표: ${target}%`);
+console.log(
+  `응답 시간: 평균 ${(avgMs / 1000).toFixed(1)}초, 최대 ${(slowest / 1000).toFixed(1)}초  |  기준(PRD §3): ${RESPONSE_TIME_LIMIT_MS / 1000}초 이내`
+);
 
 if (cases.length < 10) {
   console.log(
@@ -99,8 +116,15 @@ if (cases.length < 10) {
   );
 }
 
+let ok = true;
 if (rate < target) {
   console.log(`❌ 목표 정답률에 미달했습니다.`);
-  process.exit(1);
+  ok = false;
 }
-console.log("✅ 목표 정답률을 만족합니다.");
+if (!withinTimeLimit) {
+  console.log(`❌ 응답 시간이 ${RESPONSE_TIME_LIMIT_MS / 1000}초를 넘긴 질문이 있습니다.`);
+  ok = false;
+}
+
+if (!ok) process.exit(1);
+console.log("✅ 목표 정답률과 응답 시간 기준을 모두 만족합니다.");

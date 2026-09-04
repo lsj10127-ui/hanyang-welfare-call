@@ -10,7 +10,7 @@ const notoSansKr = Noto_Sans_KR({
 });
 
 export const metadata: Metadata = {
-  title: "한양복지콜",
+  title: "(총)무엇이든 물어봐",
   description: "직원 복지 제도를 물어보면 문서 내용을 근거로 답해주는 챗봇",
 };
 

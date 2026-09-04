@@ -16,6 +16,7 @@ export default function DocumentManager({ initialDocuments, loadError }: Props) 
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState("");
   const [errors, setErrors] = useState<string[]>(loadError ? [loadError] : []);
+  const [uploadSuccessMessage, setUploadSuccessMessage] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -57,7 +58,9 @@ export default function DocumentManager({ initialDocuments, loadError }: Props) 
 
     setIsUploading(true);
     setErrors([]);
+    setUploadSuccessMessage("");
     const failed: string[] = [];
+    let savedCount = 0;
 
     try {
       for (let i = 0; i < files.length; i++) {
@@ -81,10 +84,16 @@ export default function DocumentManager({ initialDocuments, loadError }: Props) 
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
           failed.push(`${file.name}: ${data.error ?? "저장하지 못했습니다."}`);
+        } else {
+          savedCount += 1;
         }
       }
 
       setErrors(failed);
+      // 몇 건이라도 저장에 성공했으면 "문서 준비 완료"를 알려 준다. (PRD §9 개발 단위 1)
+      if (savedCount > 0) {
+        setUploadSuccessMessage(`✓ 문서 준비 완료 (${savedCount}개 등록함)`);
+      }
       await refreshDocuments();
     } catch {
       setErrors([...failed, "문서를 저장하지 못했습니다. 잠시 후 다시 시도해 주세요."]);
@@ -101,21 +110,21 @@ export default function DocumentManager({ initialDocuments, loadError }: Props) 
       <section className="flex flex-col gap-4">
         <label
           htmlFor="pdf-upload"
-          className="flex cursor-pointer flex-col items-center justify-center gap-3 border-2 border-dashed border-[var(--navy)] bg-[var(--ink-50)] px-6 py-14 text-center transition-colors hover:bg-white"
+          className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-[var(--ink-300)] bg-[var(--ink-50)] px-6 py-14 text-center transition-colors hover:border-[var(--accent)] hover:bg-[var(--background)]"
         >
           <svg
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
             strokeWidth={1.5}
-            strokeLinecap="square"
-            strokeLinejoin="miter"
-            className="h-7 w-7 text-[var(--navy)]"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-7 w-7 text-[var(--accent)]"
           >
             <path d="M12 16V4M12 4 7 9M12 4l5 5" />
             <path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
           </svg>
-          <span className="text-base font-bold text-[var(--ink-900)]">
+          <span className="text-base font-semibold text-[var(--ink-900)]">
             복지 문서(PDF) 올리기
           </span>
           <span className="text-sm leading-relaxed text-[var(--ink-500)]">
@@ -123,6 +132,10 @@ export default function DocumentManager({ initialDocuments, loadError }: Props) 
             더 정확해집니다.
             <br />
             같은 이름의 파일을 다시 올리면 최신 내용으로 교체됩니다.
+          </span>
+          <span className="text-xs leading-relaxed text-[var(--ink-500)]">
+            ※ 문서 내용은 답변 생성을 위해 외부 AI 서비스로 전송됩니다. 직원
+            이름·사번·연락처 등 개인정보가 포함된 문서는 올리지 마세요.
           </span>
           <input
             id="pdf-upload"
@@ -140,8 +153,14 @@ export default function DocumentManager({ initialDocuments, loadError }: Props) 
           <p className="text-sm text-[var(--ink-500)]">{progress}</p>
         )}
 
+        {!isUploading && uploadSuccessMessage && (
+          <p className="text-sm font-semibold text-[var(--accent)]">
+            {uploadSuccessMessage}
+          </p>
+        )}
+
         {errors.length > 0 && (
-          <ul className="flex flex-col gap-1 border-l-2 border-[var(--danger)] bg-[var(--ink-50)] px-5 py-3 text-sm text-[var(--danger)]">
+          <ul className="flex flex-col gap-1 rounded-xl border-l-2 border-[var(--danger)] bg-[var(--ink-50)] px-5 py-3 text-sm text-[var(--danger)]">
             {errors.map((message, idx) => (
               <li key={idx}>{message}</li>
             ))}
@@ -150,15 +169,15 @@ export default function DocumentManager({ initialDocuments, loadError }: Props) 
       </section>
 
       {/* 저장된 문서 목록 */}
-      <section className="flex flex-col gap-5 border-t-2 border-[var(--navy)] pt-10">
-        <div className="flex items-baseline justify-between">
-          <h2 className="text-xl font-black tracking-tight text-[var(--ink-900)]">
+      <section className="flex flex-col gap-5 border-t border-[var(--ink-100)] pt-10">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-xl font-semibold tracking-tight text-[var(--ink-900)]">
             저장된 문서
           </h2>
           {documents.length > 0 && (
-            <span className="text-sm font-medium text-[var(--ink-500)]">
-              {documents.length}개
-            </span>
+            <p className="text-sm font-semibold text-[var(--accent)]">
+              ✓ 문서 준비 완료 ({documents.length}개)
+            </p>
           )}
         </div>
 
@@ -175,7 +194,7 @@ export default function DocumentManager({ initialDocuments, loadError }: Props) 
                 className="flex items-center justify-between gap-4 border-b border-[var(--ink-100)] py-4"
               >
                 <span className="flex min-w-0 flex-col gap-1">
-                  <span className="truncate text-sm font-bold text-[var(--ink-900)]">
+                  <span className="truncate text-sm font-semibold text-[var(--ink-900)]">
                     {doc.name}
                   </span>
                   <span className="text-xs text-[var(--ink-500)]">
@@ -186,7 +205,7 @@ export default function DocumentManager({ initialDocuments, loadError }: Props) 
                   type="button"
                   onClick={() => handleDelete(doc)}
                   disabled={deletingId === doc.id}
-                  className="shrink-0 border border-[var(--ink-300)] px-5 py-2 text-xs font-bold text-[var(--ink-900)] transition-colors hover:border-[var(--danger)] hover:text-[var(--danger)] disabled:cursor-not-allowed disabled:opacity-40"
+                  className="shrink-0 rounded-full border border-[var(--ink-300)] px-5 py-2 text-xs font-semibold text-[var(--ink-900)] transition-colors hover:border-[var(--danger)] hover:text-[var(--danger)] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {deletingId === doc.id ? "삭제 중..." : "삭제"}
                 </button>

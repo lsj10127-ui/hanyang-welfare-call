@@ -45,6 +45,48 @@
       "note": "PRD §5 — '문서에 없습니다'라고만 답하고 총무팀 연락처를 덧붙이지 않아야 한다. 실제 대출 관련 문서를 올렸다면 이 항목은 꺼 주세요."
     },
     {
+      "id": "gyeongjosabi-결혼",
+      "enabled": true,
+      "question": "본인이 결혼하면 경조사비를 얼마 받나요?",
+      "mustInclude": ["30만원"],
+      "note": "실제 등록 문서(경조사비.pdf) 기준. 총무팀이 문서를 교체하면 이 질문도 최신 내용으로 맞춰 주세요."
+    },
+    {
+      "id": "gyeongjosabi-회갑",
+      "enabled": true,
+      "question": "본인이 회갑을 맞으면 경조사비를 얼마 받나요?",
+      "mustInclude": ["10만원"],
+      "note": "실제 등록 문서(경조사비.pdf) 기준."
+    },
+    {
+      "id": "gyeongjosabi-출산",
+      "enabled": true,
+      "question": "자녀가 출산하면 경조사비를 얼마 받나요?",
+      "mustInclude": ["50만원"],
+      "note": "실제 등록 문서(경조사비.pdf) 기준."
+    },
+    {
+      "id": "gyeongjosabi-신청기간",
+      "enabled": true,
+      "question": "경조사비는 언제까지 신청해야 하나요?",
+      "mustInclude": ["12개월"],
+      "note": "실제 등록 문서(경조사비.pdf) 기준. '경조일로부터 12개월 이내'."
+    },
+    {
+      "id": "gyeongjosabi-지급시기",
+      "enabled": true,
+      "question": "경조사비는 언제 지급되나요?",
+      "mustInclude": ["익월 말"],
+      "note": "실제 등록 문서(경조사비.pdf) 기준."
+    },
+    {
+      "id": "gyeongjosabi-신청절차",
+      "enabled": true,
+      "question": "경조사비 신청 절차가 어떻게 되나요?",
+      "mustInclude": ["EHR"],
+      "note": "실제 등록 문서(경조사비.pdf) 기준."
+    },
+    {
       "id": "예시-금액질문",
       "enabled": false,
       "question": "[예시] 본인 결혼 시 축의금은 얼마인가요?",

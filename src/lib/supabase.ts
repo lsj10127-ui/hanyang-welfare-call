@@ -1,3 +1,4 @@
+import "server-only";
 import { createClient } from "@supabase/supabase-js";
 
 /**
@@ -36,7 +37,33 @@ export const FAQ_TABLE = "faq_questions";
 export interface FaqQuestion {
   id: string;
   question: string;
+  category: string;
   created_at: string;
+}
+
+/** 카테고리를 지정하지 않은 질문이 속하는 기본 카테고리 */
+export const DEFAULT_FAQ_CATEGORY = "기타";
+
+/**
+ * Supabase가 `PGRST303 JWT issued at future`처럼 일시적인 시계 오차로 실패할 때가
+ * 있다(개발 서버가 코드 변경으로 재컴파일된 직후에 몰리는 경향이 있다). 읽기 전용
+ * 조회라 다시 불러도 안전하므로, 대기 시간을 늘려가며 최대 세 번까지 시도한다.
+ */
+const RETRY_DELAYS_MS = [300, 800, 1500];
+
+async function withRetry<T>(run: () => Promise<T>): Promise<T> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await run();
+    } catch (error) {
+      if (attempt >= RETRY_DELAYS_MS.length) throw error;
+      console.warn(
+        `Supabase 조회 실패, ${RETRY_DELAYS_MS[attempt]}ms 후 재시도합니다 (${attempt + 1}/${RETRY_DELAYS_MS.length}):`,
+        error
+      );
+      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAYS_MS[attempt]));
+    }
+  }
 }
 
 /**
@@ -46,14 +73,16 @@ export interface FaqQuestion {
  * 총무팀이 가장 잘 안다. 질문 기록을 남겨 빈도를 세는 방식은 쓰지 않는다.
  */
 export async function listFaqQuestions(): Promise<FaqQuestion[]> {
-  const supabase = getSupabaseClient();
-  const { data, error } = await supabase
-    .from(FAQ_TABLE)
-    .select("id, question, created_at")
-    .order("created_at", { ascending: true });
+  return withRetry(async () => {
+    const supabase = getSupabaseClient();
+    const { data, error } = await supabase
+      .from(FAQ_TABLE)
+      .select("id, question, category, created_at")
+      .order("created_at", { ascending: true });
 
-  if (error) throw error;
-  return data ?? [];
+    if (error) throw error;
+    return data ?? [];
+  });
 }
 
 /** 목록에 쓰는 문서 정보 (본문 제외) */
@@ -69,14 +98,16 @@ export type DocumentSummary = Pick<
  * 충돌을 판단하므로, 정렬 기준을 이 함수 한 곳에 모아 어긋나지 않게 한다.
  */
 export async function listDocuments(): Promise<DocumentSummary[]> {
-  const supabase = getSupabaseClient();
-  const { data, error } = await supabase
-    .from(DOCUMENTS_TABLE)
-    .select("id, name, uploaded_at")
-    .order("uploaded_at", { ascending: true });
+  return withRetry(async () => {
+    const supabase = getSupabaseClient();
+    const { data, error } = await supabase
+      .from(DOCUMENTS_TABLE)
+      .select("id, name, uploaded_at")
+      .order("uploaded_at", { ascending: true });
 
-  if (error) throw error;
-  return data ?? [];
+    if (error) throw error;
+    return data ?? [];
+  });
 }
 
 /**
@@ -86,12 +117,14 @@ export async function listDocuments(): Promise<DocumentSummary[]> {
  * 믿으면 누구든 가짜 "복지 규정"을 넣어 답변을 조작할 수 있기 때문이다.
  */
 export async function listDocumentsWithContent(): Promise<WelfareDocument[]> {
-  const supabase = getSupabaseClient();
-  const { data, error } = await supabase
-    .from(DOCUMENTS_TABLE)
-    .select("id, name, content, uploaded_at")
-    .order("uploaded_at", { ascending: true });
+  return withRetry(async () => {
+    const supabase = getSupabaseClient();
+    const { data, error } = await supabase
+      .from(DOCUMENTS_TABLE)
+      .select("id, name, content, uploaded_at")
+      .order("uploaded_at", { ascending: true });
 
-  if (error) throw error;
-  return data ?? [];
+    if (error) throw error;
+    return data ?? [];
+  });
 }

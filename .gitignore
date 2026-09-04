@@ -48,3 +48,7 @@ next-env.d.ts
 
 # 삭제 대기 파일 (사용자 확인 후 최종 삭제)
 /trash-can
+
+# Supabase CLI 로컬 연결 상태 (프로젝트 ref·조직 ID 등 내부 식별자, 비밀값은 아니지만
+# 공개 저장소에는 올리지 않는다)
+/supabase/.temp

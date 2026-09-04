@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, type KeyboardEvent } from "react";
+import type { FaqQuestion } from "@/lib/supabase";
+import CategoryIcon from "./CategoryIcon";
 
 interface ChatMessage {
   role: "user" | "assistant" | "error";
@@ -11,13 +13,21 @@ interface Props {
   /** 서버에 준비된 문서 수. 0이면 아직 안내할 수 있는 내용이 없다. */
   documentCount: number;
   /** 총무팀이 등록한 자주 묻는 질문 */
-  faqQuestions: string[];
+  faqQuestions: FaqQuestion[];
 }
 
 export default function ChatPanel({ documentCount, faqQuestions }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [question, setQuestion] = useState("");
   const [isSending, setIsSending] = useState(false);
+
+  // 등록된 순서 그대로 카테고리 목록을 뽑는다 (중복 제거).
+  const categories = Array.from(
+    new Set(faqQuestions.map((item) => item.category))
+  );
+  const [activeCategory, setActiveCategory] = useState<string | null>(
+    categories[0] ?? null
+  );
 
   const hasDocuments = documentCount > 0;
 
@@ -71,24 +81,45 @@ export default function ChatPanel({ documentCount, faqQuestions }: Props) {
 
   // 아직 대화가 없을 때만 보여준다. 대화가 시작되면 자리를 차지하지 않도록 감춘다.
   const showFaq = hasDocuments && faqQuestions.length > 0 && messages.length === 0;
+  const visibleFaqs = faqQuestions.filter((item) => item.category === activeCategory);
 
   return (
     <section className="flex flex-col">
       {showFaq && (
-        <div className="flex flex-col gap-3 border-t-2 border-[var(--navy)] pt-6">
-          <p className="text-sm font-bold text-[var(--ink-900)]">
-            이런 것들을 많이 물어보세요
+        <div className="section-dark flex flex-col gap-3 rounded-2xl p-6">
+          <p className="text-sm font-semibold text-[var(--ink-900)]">
+            궁금한 주제를 골라 보세요
           </p>
+          {categories.length > 1 && (
+            <ul className="flex flex-wrap gap-2">
+              {categories.map((category) => (
+                <li key={category}>
+                  <button
+                    type="button"
+                    onClick={() => setActiveCategory(category)}
+                    className={
+                      category === activeCategory
+                        ? "flex items-center gap-1.5 rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white"
+                        : "flex items-center gap-1.5 rounded-full bg-[var(--ink-50)] px-4 py-2 text-sm text-[var(--ink-700)] transition-colors hover:bg-[var(--ink-100)]"
+                    }
+                  >
+                    <CategoryIcon category={category} className="h-4 w-4 shrink-0" />
+                    {category}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
           <ul className="flex flex-wrap gap-2">
-            {faqQuestions.map((faq) => (
-              <li key={faq}>
+            {visibleFaqs.map((faq) => (
+              <li key={faq.id}>
                 <button
                   type="button"
-                  onClick={() => handleSend(faq)}
+                  onClick={() => handleSend(faq.question)}
                   disabled={isSending}
-                  className="border border-[var(--navy)] px-4 py-2 text-sm text-[var(--navy)] transition-colors hover:bg-[var(--navy)] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded-full border border-[var(--ink-300)] px-4 py-2 text-sm text-[var(--accent)] transition-colors hover:bg-[var(--accent)] hover:text-white hover:border-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  {faq}
+                  {faq.question}
                 </button>
               </li>
             ))}
@@ -96,25 +127,25 @@ export default function ChatPanel({ documentCount, faqQuestions }: Props) {
         </div>
       )}
 
-      <div className="flex max-h-[440px] min-h-[220px] flex-col gap-5 overflow-y-auto border-t-2 border-[var(--navy)] py-8">
+      <div className="flex max-h-[440px] min-h-[220px] flex-col gap-5 overflow-y-auto border-t border-[var(--ink-100)] py-8">
         {messages.length === 0 && (
           <div className="flex flex-col items-center gap-4 py-6 text-center">
             {/* 질문을 기다리고 있다는 표시 */}
             <svg viewBox="0 0 48 48" className="h-10 w-10" aria-hidden="true">
               <path
-                d="M2 4h44v30H22L10 46V34H2z"
+                d="M6 6h36a4 4 0 0 1 4 4v22a4 4 0 0 1-4 4H22L10 46V36H6a4 4 0 0 1-4-4V10a4 4 0 0 1 4-4z"
                 fill="none"
-                stroke="var(--navy)"
+                stroke="var(--accent)"
                 strokeWidth="2.5"
               />
               <path
                 d="M18 15.5a6 6 0 1 1 6 6v2.5"
                 fill="none"
-                stroke="var(--navy)"
+                stroke="var(--accent)"
                 strokeWidth="3"
                 strokeLinecap="round"
               />
-              <circle cx="24" cy="28.5" r="1.9" fill="var(--navy)" />
+              <circle cx="24" cy="28.5" r="1.9" fill="var(--accent)" />
             </svg>
             <p className="text-base text-[var(--ink-500)]">
               {hasDocuments
@@ -128,23 +159,23 @@ export default function ChatPanel({ documentCount, faqQuestions }: Props) {
             key={idx}
             className={
               msg.role === "user"
-                ? "ml-auto max-w-[85%] whitespace-pre-wrap bg-[var(--ink-900)] px-5 py-3 text-sm leading-relaxed text-white"
+                ? "ml-auto max-w-[85%] whitespace-pre-wrap rounded-2xl bg-[var(--accent)] px-5 py-3 text-sm leading-relaxed text-white"
                 : msg.role === "error"
-                ? "mr-auto max-w-[85%] whitespace-pre-wrap border-l-2 border-[var(--danger)] bg-[var(--ink-50)] px-5 py-3 text-sm leading-relaxed text-[var(--danger)]"
-                : "mr-auto max-w-[85%] whitespace-pre-wrap bg-[var(--ink-50)] px-5 py-3 text-sm leading-relaxed text-[var(--ink-900)]"
+                ? "mr-auto max-w-[85%] whitespace-pre-wrap rounded-2xl border-l-2 border-[var(--danger)] bg-[var(--ink-50)] px-5 py-3 text-sm leading-relaxed text-[var(--danger)]"
+                : "mr-auto max-w-[85%] whitespace-pre-wrap rounded-2xl bg-[var(--ink-50)] px-5 py-3 text-sm leading-relaxed text-[var(--ink-900)]"
             }
           >
             {msg.content}
           </div>
         ))}
         {isSending && (
-          <div className="mr-auto max-w-[85%] bg-[var(--ink-50)] px-5 py-3 text-sm text-[var(--ink-500)]">
+          <div className="mr-auto max-w-[85%] rounded-2xl bg-[var(--ink-50)] px-5 py-3 text-sm text-[var(--ink-500)]">
             답변을 찾고 있어요...
           </div>
         )}
       </div>
 
-      <div className="flex flex-col gap-3 border-t-2 border-[var(--navy)] pt-6 sm:flex-row sm:items-stretch">
+      <div className="flex flex-col gap-3 border-t border-[var(--ink-100)] pt-6 sm:flex-row sm:items-stretch">
         <textarea
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
@@ -156,13 +187,13 @@ export default function ChatPanel({ documentCount, faqQuestions }: Props) {
           }
           disabled={!hasDocuments || isSending}
           rows={2}
-          className="flex-1 resize-none border border-[var(--ink-300)] px-4 py-3 text-sm text-[var(--ink-900)] outline-none transition-colors placeholder:text-[var(--ink-500)] focus:border-[var(--navy)] disabled:bg-[var(--ink-50)] disabled:text-[var(--ink-500)]"
+          className="flex-1 resize-none rounded-2xl border border-[var(--ink-300)] bg-[var(--ink-50)] px-4 py-3 text-sm text-[var(--ink-900)] outline-none transition-colors placeholder:text-[var(--ink-500)] focus:border-[var(--accent)] focus:bg-[var(--background)] disabled:text-[var(--ink-500)]"
         />
         <button
           type="button"
           onClick={() => handleSend()}
           disabled={!hasDocuments || !question.trim() || isSending}
-          className="bg-[var(--accent)] px-10 py-3 text-sm font-bold tracking-tight text-white transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:bg-[var(--ink-300)]"
+          className="rounded-full bg-[var(--accent)] px-10 py-3 text-sm font-semibold tracking-tight text-white transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:bg-[var(--ink-300)]"
         >
           보내기
         </button>

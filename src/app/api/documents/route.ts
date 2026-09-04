@@ -33,6 +33,15 @@ export async function GET() {
  * (PRD §9 개발 단위 2번에서 정한 방식)
  */
 export async function POST(request: NextRequest) {
+  // text/plain 등으로 위장한 크로스 사이트 요청(CSRF)을 걸러낸다.
+  // 진짜 관리 화면은 fetch로 항상 application/json을 보낸다.
+  if (!request.headers.get("content-type")?.includes("application/json")) {
+    return NextResponse.json(
+      { error: "요청 형식이 올바르지 않습니다." },
+      { status: 415 }
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();
