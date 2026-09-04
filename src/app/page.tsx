@@ -22,25 +22,25 @@ export default async function Home() {
   }
 
   return (
-    <div className="flex flex-1 flex-col items-center px-6 py-16 sm:px-10 sm:py-24">
-      <div className="surface flex w-full max-w-6xl items-start justify-center gap-12 rounded-3xl p-8 shadow-2xl sm:p-14">
-        <div className="flex w-full max-w-2xl flex-col gap-12">
+    <div className="flex flex-1 flex-col items-center px-3 py-6 sm:px-10 sm:py-24">
+      <div className="surface flex w-full max-w-6xl items-start justify-center gap-8 rounded-2xl p-4 shadow-xl sm:gap-12 sm:rounded-3xl sm:p-14 sm:shadow-2xl">
+        <div className="flex w-full max-w-2xl flex-col gap-8 sm:gap-12">
           <header className="flex flex-col gap-4">
-            <div className="w-fit pb-5">
+            <div className="w-fit pb-2 sm:pb-5">
               <Image
                 src="/logo.png"
                 alt="한양대학교병원"
                 width={1100}
                 height={294}
                 priority
-                className="h-auto w-[200px] sm:w-[260px]"
+                className="h-auto w-[160px] sm:w-[260px]"
               />
             </div>
-            <div className="mt-2 flex items-center gap-4">
+            <div className="mt-1 flex items-center gap-3 sm:mt-2 sm:gap-4">
               {/* 물어보면 답해 주는 서비스라는 뜻을 담은 둥근 말풍선 표시 */}
               <svg
                 viewBox="0 0 48 48"
-                className="h-12 w-12 shrink-0 sm:h-16 sm:w-16"
+                className="h-10 w-10 shrink-0 sm:h-16 sm:w-16"
                 aria-hidden="true"
               >
                 <path
@@ -57,7 +57,7 @@ export default async function Home() {
                 />
                 <circle cx="24" cy="28.5" r="2.1" fill="#ffffff" />
               </svg>
-              <h1 className="text-4xl font-semibold leading-none tracking-tight text-[var(--ink-900)] sm:text-6xl">
+              <h1 className="text-2xl font-semibold leading-tight tracking-tight text-[var(--ink-900)] sm:text-6xl sm:leading-none">
                 (총)무엇이든 물어봐
               </h1>
             </div>
@@ -79,7 +79,7 @@ export default async function Home() {
 
           <ChatPanel documentCount={documentCount} faqQuestions={faqQuestions} />
 
-          <footer className="section-dark rounded-2xl px-6 py-4">
+          <footer className="section-dark rounded-xl px-4 py-3 sm:rounded-2xl sm:px-6 sm:py-4">
             <Link
               href="/admin"
               className="text-sm font-medium text-[var(--accent)] underline underline-offset-4 transition-colors hover:text-[var(--accent-dark)]"

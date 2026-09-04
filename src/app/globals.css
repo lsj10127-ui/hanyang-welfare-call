@@ -109,6 +109,22 @@ textarea {
   opacity: 0.14;
 }
 
+/* 좁은 화면에서는 카드 자체가 작아지므로 블롭도 같이 줄인다. */
+@media (max-width: 640px) {
+  .surface::before {
+    top: -80px;
+    right: -70px;
+    width: 220px;
+    height: 220px;
+  }
+  .surface::after {
+    bottom: -80px;
+    left: -70px;
+    width: 200px;
+    height: 200px;
+  }
+}
+
 /*
  * 흰 카드(.surface) 안에서 특정 구획만 다시 어둡게 띄우는 서브 카드.
  * 카테고리 영역·하단 링크처럼 시각적으로 도드라져야 하는 부분에 쓴다.

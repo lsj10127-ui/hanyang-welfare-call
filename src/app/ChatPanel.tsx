@@ -86,7 +86,7 @@ export default function ChatPanel({ documentCount, faqQuestions }: Props) {
   return (
     <section className="flex flex-col">
       {showFaq && (
-        <div className="section-dark flex flex-col gap-3 rounded-2xl p-6">
+        <div className="section-dark flex flex-col gap-3 rounded-xl p-4 sm:rounded-2xl sm:p-6">
           <p className="text-sm font-semibold text-[var(--ink-900)]">
             궁금한 주제를 골라 보세요
           </p>

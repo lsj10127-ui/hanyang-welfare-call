@@ -34,8 +34,8 @@ export default async function AdminPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col items-center px-6 py-16 sm:px-10 sm:py-24">
-      <div className="surface flex w-full max-w-2xl flex-col gap-12 rounded-3xl p-8 shadow-2xl sm:p-14">
+    <div className="flex flex-1 flex-col items-center px-3 py-6 sm:px-10 sm:py-24">
+      <div className="surface flex w-full max-w-2xl flex-col gap-8 rounded-2xl p-4 shadow-xl sm:gap-12 sm:rounded-3xl sm:p-14 sm:shadow-2xl">
         <header className="flex flex-col gap-4">
           <Link
             href="/"
@@ -43,17 +43,17 @@ export default async function AdminPage() {
           >
             ← 직원 화면으로
           </Link>
-          <div className="w-fit pb-5">
+          <div className="w-fit pb-2 sm:pb-5">
             <Image
               src="/logo.png"
               alt="한양대학교병원"
               width={1100}
               height={294}
               priority
-              className="h-auto w-[180px] sm:w-[220px]"
+              className="h-auto w-[150px] sm:w-[220px]"
             />
           </div>
-          <h1 className="mt-2 text-4xl font-semibold leading-none tracking-tight text-[var(--ink-900)] sm:text-5xl">
+          <h1 className="mt-1 text-3xl font-semibold leading-tight tracking-tight text-[var(--ink-900)] sm:mt-2 sm:text-5xl sm:leading-none">
             복지 문서 관리
           </h1>
           <p className="text-base leading-relaxed text-[var(--ink-700)]">
